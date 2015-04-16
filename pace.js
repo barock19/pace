@@ -61,6 +61,7 @@ function Pace(options) {
   // Setup charm.
   this.charm = charm();
   this.charm.pipe(process.stdout);
+  this.extraLine = []
 
   // Prepare the output.
   this.charm.write("\n\n\n");
@@ -103,6 +104,7 @@ Pace.prototype.op = function op(count) {
 
   this.updateTimes();
   this.clear();
+  this.writeExtraLine();
   this.outputProgress();
   this.outputStats();
   this.outputTimes();
@@ -144,8 +146,28 @@ Pace.prototype.updateTimes = function updateTimes() {
  * Move the cursor back to the beginning and clear old output.
  */
 Pace.prototype.clear = function clear() {
-  this.charm.erase('line').up(1).erase('line').up(1).erase('line').write("\r");
+  clearTime = 4 + this.extraLine.length
+  for(i = 1 ; i <= clearTime ; i++){
+    this.charm.erase('line').up(1)
+  }
+  this.charm.erase('line').write("\r");
 };
+Pace.prototype.puts = function addLine(line){
+  if(this.extraLine.length == 0)
+    this.extraLine.unshift("Live Feed :")
+  this.extraLine.push(line)
+}
+
+Pace.prototype.writeExtraLine = function writeExtraLine(){
+  for(i=0; i < this.extraLine.length ; i++ ){
+    if(i>0)
+      this.charm.write('-> ' + this.extraLine[i]); 
+    else
+      this.charm.write(this.extraLine[i]); 
+    this.charm.display('reset').down(1).left(100);
+  }
+  this.charm.display('reset').down(1).left(100);
+}
 
 /**
  * Output the progress bar.
@@ -165,7 +187,7 @@ Pace.prototype.outputProgress = function outputProgress() {
 };
 
 /**
- * Output numerical progress stats.
+ * Output numerical progress itats.
  */
 Pace.prototype.outputStats = function outputStats() {
   this.perc = (this.current/this.total)*100;
@@ -204,6 +226,7 @@ Pace.prototype.outputTimes = function outputTimes() {
     this.charm.write('   ').display('bright').write('Remaining: ').display('reset');
     this.charm.write(hours + 'h ' + min + 'm ' + sec + 's');
   }
+  this.charm.display('reset').down(1).left(100);
 };
 
 /**
@@ -268,3 +291,4 @@ function formatNumber(number, decimals, dec_point, thousands_sep) {
   }
   return s.join(dec);
 }
+
